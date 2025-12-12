@@ -6,7 +6,32 @@ const int clock_pin = 13;
 const int data_pin = 8;
 const int debug_led_pin = 7;  // light up according to clock signal
 
-const int clock_period = 100;  // ms
+const int clock_period = 5;  // micro seconds
+
+// indexed to 0-9 followed by A-F followed by degree symbol
+const int hex_codes[17] = {
+  0x3F, // 0
+  0x30, // 1
+  0x5B, // 2
+  0x79, // 3
+  0x74, // 4
+  0x6D, // 5
+  0x6F, // 6
+  0x38, // 7
+  0x7F, // 8
+  0x7D, // 9
+
+  0x7E, // A
+  0x67, // b
+  0x0F, // C
+  0x73, // d
+  0x4F, // E
+  0x4E, // F
+
+  0x5C  // degree
+};
+
+const int colon_code = 8; // add this to a hex code to include the colon
 
 
 
@@ -19,8 +44,7 @@ void setup() {
 }
 
 void loop() {
-  // Set data here
-
+  ResetAddr();
 
   // turn on display
   Start();
@@ -33,13 +57,13 @@ void loop() {
   Execute(0x40);
   Ack();
   //nums
-  Execute(0x01);
+  Execute(hex_codes[8]);
   Ack();
-  Execute(0x01);
+  Execute(hex_codes[9]);
   Ack();
-  Execute(0x01);
+  Execute(hex_codes[16]);
   Ack();
-  Execute(0x01);
+  Execute(hex_codes[15]);
   Ack();
   Stop();
 
@@ -49,24 +73,35 @@ void loop() {
   Halt();
 }
 
+void SendChar(uint8_t data)  {
+
+}
+
+// goes back to first digit on display
+void ResetAddr() {
+  Start();
+  Execute(0xC0);
+  Ack();
+  Stop();
+}
 
 // start the i2c transmission
 void Start() {
-  Serial.println("Init.");
+  // Serial.println("Init.");
   SetClock(HIGH);
   digitalWrite(data_pin, HIGH);
-  delay(1000);
+  delayMicroseconds(clock_period);
   digitalWrite(data_pin, LOW);
 }
 
 // end the i2c transmission
 void Stop() {
   SetClock(LOW);
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
   digitalWrite(data_pin, LOW);
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
   SetClock(HIGH);
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
   digitalWrite(data_pin, HIGH);
 }
 
@@ -75,11 +110,11 @@ void Ack() {
   SetClock(LOW);
   // clock is low
   pinMode(data_pin, INPUT);  // release control
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
 
   // set hgigh
   SetClock(HIGH);
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
 
   // receive ACK
   // Serial.println(digitalRead(data_pin));
@@ -89,14 +124,14 @@ void Ack() {
 
   // set low
   SetClock(LOW);
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
 
   // REGAIN control
   pinMode(data_pin, OUTPUT);
 }
 
 void Execute(uint8_t data) {
-  Serial.println("Executing:");
+  // Serial.println("Executing:");
   // for (int i = 7; i >= 0; i--) {
   for (int i=0; i<8; i++) {
     // set clock to low
@@ -107,12 +142,12 @@ void Execute(uint8_t data) {
 
     // write first bit
     digitalWrite(data_pin, bit);
-    Serial.print(bit);
+    // Serial.print(bit);
 
     // step clock
-    delay(clock_period / 2);
+    delayMicroseconds(clock_period);
     SetClock(HIGH);
-    delay(clock_period / 2);
+    delayMicroseconds(clock_period);
   }
 }
 
@@ -126,13 +161,14 @@ void SetClock(int val) {
   digitalWrite(debug_led_pin, val);
   digitalWrite(clock_pin, val);
 }
+
 void Clock_Pulse() {
   // rise clock, data will be read following this
   digitalWrite(debug_led_pin, HIGH);
   digitalWrite(clock_pin, HIGH);
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
   // set clock to low
   digitalWrite(debug_led_pin, LOW);
   digitalWrite(clock_pin, LOW);
-  delay(clock_period / 2);
+  delayMicroseconds(clock_period);
 }
