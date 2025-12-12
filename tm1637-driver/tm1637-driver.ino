@@ -8,23 +8,7 @@ const int debug_led_pin = 7;  // light up according to clock signal
 
 const int clock_period = 100;  // ms
 
-const uint8_t display_on_data[8] = { 1, 0, 0, 0, 1, 0, 0, 0 };
-const uint8_t display_off_data[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
-const uint8_t set1_data[8] = { 1, 1, 0, 0, 0, 0, 0, 0 };       // display set to 00H addr
-const uint8_t width_data[8] = { 1, 0, 0, 0, 0, 1, 1, 1 };      // set pulse width
-const uint8_t test_mode_data[8] = { 0, 1, 0, 0, 1, 0, 0, 0 };  // test mode?
 
-const uint8_t write_to_disp_reg_data[8] = { 0, 1, 0, 0, 0, 0, 0, 0 };
-const uint8_t reg_1[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-const uint8_t reg_2[8] = { 0, 0, 0, 0, 0, 0, 1, 0 };
-const uint8_t my_data_1[8] = { 1, 1, 1, 1, 1, 0, 0, 1 };
-
-
-const uint8_t my_num_1[8] = { 0, 0, 1, 1, 0, 0, 0, 0 };
-const uint8_t my_num_2[8] = { 0, 1, 0, 1, 1, 0, 1, 1 };
-const uint8_t my_num_3[8] = { 1, 1, 1, 1, 1, 0, 0, 1 };
-const uint8_t my_num_4[8] = { 0, 1, 1, 1, 0, 1, 0, 0 };
-// const int my_data_1[8] = {0, 1, 1, 1, 1, 1, 1, 0};
 
 void setup() {
   // set up pins
@@ -40,40 +24,24 @@ void loop() {
 
   // turn on display
   Start();
-  Execute(display_on_data);
+  Execute(0x88);
   Ack();
   Stop();
 
   // write to disp
   Start();
-  Execute(write_to_disp_reg_data);
+  Execute(0x40);
   Ack();
   //nums
-  Execute(my_num_1);
+  Execute(0x01);
   Ack();
-  Execute(my_num_2);
+  Execute(0x01);
   Ack();
-  Execute(my_num_3);
+  Execute(0x01);
   Ack();
-  Execute(my_num_4);
+  Execute(0x01);
   Ack();
   Stop();
-
-  // Execute(set1_data); // display reg 0
-  // for (uint8_t i = 1; i<256; i++) {
-  //   Execute(display_on_data);  // THUS MAKES IT START TAKING IN DATA??
-  //   uint8_t* data = BinConvert(i);
-  //   Execute(data);
-  //   Execute(data);
-  //   Execute(data);
-  //   Execute(data);
-  //   free(data);
-
-
-  //   Init();  // THIS MAKES IT STOP TAKING IN DATA???
-  // }
-
-  // Execute(display_off_data);  // 9 steps
 
 
 
@@ -81,18 +49,8 @@ void loop() {
   Halt();
 }
 
-// takes in unsigned 8 bit
-// returns an arr of 8 representing the binary value
-uint8_t* BinConvert(uint8_t val) {
-  uint8_t* arr = malloc(sizeof(uint8_t) * 8);
 
-  for (int i = 0; i < 8; i++) {
-    arr[i] = (val & (1 << i)) != 0;
-  }
-
-  return arr;
-}
-
+// start the i2c transmission
 void Start() {
   Serial.println("Init.");
   SetClock(HIGH);
@@ -101,6 +59,7 @@ void Start() {
   digitalWrite(data_pin, LOW);
 }
 
+// end the i2c transmission
 void Stop() {
   SetClock(LOW);
   delay(clock_period / 2);
@@ -111,7 +70,7 @@ void Stop() {
   digitalWrite(data_pin, HIGH);
 }
 
-// get acknowledgement
+// receive i2c acknowledgement
 void Ack() {
   SetClock(LOW);
   // clock is low
@@ -123,7 +82,10 @@ void Ack() {
   delay(clock_period / 2);
 
   // receive ACK
-  Serial.println(digitalRead(data_pin));
+  // Serial.println(digitalRead(data_pin));
+  if(digitalRead(data_pin) != 0) {
+    Serial.println("ACK Not received!");
+  }
 
   // set low
   SetClock(LOW);
@@ -133,20 +95,22 @@ void Ack() {
   pinMode(data_pin, OUTPUT);
 }
 
-void Execute(uint8_t data[8]) {
+void Execute(uint8_t data) {
   Serial.println("Executing:");
-  for (int i = 7; i >= 0; i--) {
-  // for (int i=0; i<8; i++) {
+  // for (int i = 7; i >= 0; i--) {
+  for (int i=0; i<8; i++) {
     // set clock to low
     SetClock(LOW);
 
+    // extract first bit 
+    uint8_t bit = ((data >> i) & 1) == 1;
 
-    digitalWrite(data_pin, data[i]);
+    // write first bit
+    digitalWrite(data_pin, bit);
+    Serial.print(bit);
 
-    Serial.print(data[i]);
-
+    // step clock
     delay(clock_period / 2);
-
     SetClock(HIGH);
     delay(clock_period / 2);
   }
@@ -154,10 +118,10 @@ void Execute(uint8_t data[8]) {
 
 void Halt() {
   while (1) {
-
     delay(1000);
   }
 }
+
 void SetClock(int val) {
   digitalWrite(debug_led_pin, val);
   digitalWrite(clock_pin, val);
