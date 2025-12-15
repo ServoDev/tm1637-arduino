@@ -15,56 +15,54 @@ class Display {
     }
 
 
-    void Step() {
-      if (!active) return;
-    } 
+    void step();
 
-    void Print(int a, int b, int c, int d) {
-      ResetAddr();
-
-      uint8_t arr[4] = {a, b, c, d};
-
-      Write(arr, 0);
-    }
+    // void Print(int a, int b, int c, int d) {
+    //   ResetAddr();
+    //
+    //   uint8_t arr[4] = {a, b, c, d};
+    //
+    //   Write(arr, 0);
+    // }
 
     // turns display on/off
-    void Activate() { SetDisplay(1); };
-    void Deactivate() { SetDisplay(0); };
+    void activate() { SetDisplay(1); };
+    void deactivate() { SetDisplay(0); };
+
+    void startStopwatch() {
+      active = stopwatch;
+      time = millis();
+      cnt = 0;
+    }
 
 
   private:
     const int stopwatch = 1;
     const int timer = 2;
     int active;
+    unsigned long time;
+    int cnt; // used for stopwatch and timers
 };
 
+void Display::step() {
+  if (!active) return;
 
-void setup() {
-
-}
-
-void loop() {
-  
-  Display display; 
-  display.Activate();
-  // display.Print(1, 3, 3, 7);
-  StartStopwatch();
-  
-
-  Halt();
-}
+  if (active == stopwatch) {
+    // ensure 1 second has passed
+    while ((millis() - time) < 1000) {
+      // do nothing TODO is this proper
+    }
+    // reset time
+    time = millis();
 
 
-void StartStopwatch() {
-  // what gets displayed
-  uint8_t vals[4] = {2, 1, 0, 1};
-
-  // seconds passed
-  int cnt = 0;
-  while (1) {
+    // step the stopwatch
     if (cnt >= 3601) return; // stop timer at 60 min
     uint8_t minutes = cnt / 60;
     uint8_t seconds = cnt % 60;
+
+    // what gets displayed
+    uint8_t vals[4];
 
     // set the display vals
     vals[0] = minutes / 10;
@@ -78,6 +76,23 @@ void StartStopwatch() {
     Serial.println(debug);
 
     cnt++;
-    delay(10);
   }
+
+  if (active == timer) {
+
+  }
+} 
+
+
+Display display;  // decplare display globally
+void setup() {
+  display.activate();
+  // display.Print(1, 3, 3, 7);
+  display.startStopwatch();
 }
+
+void loop() {
+  display.step();
+}
+
+
