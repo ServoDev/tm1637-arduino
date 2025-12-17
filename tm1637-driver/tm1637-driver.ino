@@ -17,17 +17,19 @@ class Display {
 
     void step();
 
-    // void Print(int a, int b, int c, int d) {
-    //   ResetAddr();
-    //
-    //   uint8_t arr[4] = {a, b, c, d};
-    //
-    //   Write(arr, 0);
-    // }
+    void write(int a, int b, int c, int d) {
+      ResetAddr();
+
+      uint8_t arr[4] = {a, b, c, d};
+
+      Write(arr, 0);
+    }
 
     // turns display on/off
     void activate() { SetDisplay(1); };
     void deactivate() { SetDisplay(0); };
+
+    void setBrightness(uint8_t val);
 
     void startStopwatch() {
       cnt = 0;
@@ -135,38 +137,31 @@ void Display::displayTime(unsigned int cnt) {
   // Serial.println(debug);
 }
 
+// set the brightness 0 to 7 inclusive
+void Display::setBrightness(uint8_t val) {
+  // check for invalid input
+  if (val > 7) return; // TODO error handle
+
+  SetBrightness(val);
+}
+
 
 
 Display display;  // decplare display globally
 void setup() {
   Serial.begin(9600); 
   display.activate();
-  // display.Print(1, 3, 3, 7);
-  // display.startStopwatch();
+  display.write(1, 3, 3, 7);
   display.startStopwatch();
+  // display.startStopwatch();
 }
 
-// variables used in timer test
-unsigned long test = 0;
-int isTest = 0;
-
+int i=0;
 void loop() {
   display.step();
-  // Serial.println(display.getCnt());
-
-  // a test to pause the timer at 5s and play again after 5 seconds
-  if (display.getCnt() == 5 && !isTest) {
-    test = millis();
-    display.pauseStopwatch(); 
-    isTest = 1;
-  }
-
-  if (isTest == 1) {
-    if ((millis() - test) > 5000)  {
-      display.playStopwatch();
-      isTest = 2;
-    }
-  }
-
+  display.setBrightness(i);
+  delay(50);
+  i++;
+  if (i>7) i=0;
 }
 

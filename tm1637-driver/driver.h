@@ -11,8 +11,8 @@ void Start();
 void Stop();
 void Ack();
 void Execute(uint8_t data);
-void Halt();
 void SetClock(int val);
+void SetBrightness(uint8_t val);
 
 void SetDisplay(uint8_t isOn);
 

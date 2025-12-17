@@ -24,6 +24,11 @@ const int hex_codes[17] = {
 };
 
 const int colon_code = 0x80; // add this to a hex code to include the colon
+const int brightness_code = 0x88; // add to desired brightness level to set
+const int display_on_code = 0x88; // op code to turn on disp
+const int display_off_code = 0x80; // op code to turn off disp
+const int reset_addr_code = 0xC0; // op code to turn off disp
+
 
 void Setup() {
   // set up pins
@@ -36,9 +41,9 @@ void SetDisplay(uint8_t isOn) {
   Start();
 
   if (isOn)
-    Execute(0x88);
+    Execute(display_on_code);
   else 
-    Execute(0x80);
+    Execute(display_off_code);
 
   Ack();
   Stop();
@@ -68,7 +73,7 @@ void Write(uint8_t data[4], uint8_t has_colon)  {
 // goes back to first digit on display
 void ResetAddr() {
   Start();
-  Execute(0xC0);
+  Execute(reset_addr_code);
   Ack();
   Stop();
 }
@@ -135,12 +140,15 @@ void Execute(uint8_t data) {
   }
 }
 
-void Halt() {
-  while (1) {
-    delay(1000);
-  }
-}
-
 void SetClock(int val) {
   digitalWrite(clock_pin, val);
+}
+
+// takes in only 0-7 and adjusts brightness
+void SetBrightness(uint8_t val) {
+  Start();
+	// Execute(0x05 + brightness_code);
+	Execute(brightness_code + val);
+  Ack();
+  Stop();
 }
