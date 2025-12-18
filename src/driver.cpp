@@ -6,7 +6,6 @@ const int brightness_code = 0x88; // add to desired brightness level to set
 const int display_on_code = 0x88; // op code to turn on disp
 const int display_off_code = 0x80; // op code to turn off disp
 const int reset_addr_code = 0xC0; // op code to turn off disp
-
 // indexed to 0-9 followed by A-F followed by degree symbol
 const int hex_codes[17] = {
   0x3F, // 0
@@ -99,7 +98,6 @@ void Stop() {
   digitalWrite(data_pin, HIGH);
 }
 
-// receive i2c acknowledgement
 void Ack() {
   SetClock(LOW);
   // clock is low
