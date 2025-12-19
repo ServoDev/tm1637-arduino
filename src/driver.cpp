@@ -1,11 +1,16 @@
 #include "driver.h"
 
 
+int clock_pin;
+int data_pin;
+int clock_period = 5; // default to 5
+
 const int colon_code = 0x80; // add this to a hex code to include the colon
 const int brightness_code = 0x88; // add to desired brightness level to set
 const int display_on_code = 0x88; // op code to turn on disp
 const int display_off_code = 0x80; // op code to turn off disp
 const int reset_addr_code = 0xC0; // op code to turn off disp
+
 // indexed to 0-9 followed by A-F followed by degree symbol
 const int hex_codes[17] = {
   0x3F, // 0
@@ -31,7 +36,9 @@ const int hex_codes[17] = {
 
 
 
-void Setup() {
+void Setup(int clock, int data) {
+  clock_pin = clock;
+  data_pin = data;
   // set up pins
   pinMode(clock_pin, OUTPUT);
   pinMode(data_pin, OUTPUT);  // take control
@@ -100,11 +107,11 @@ void Stop() {
 
 void Ack() {
   SetClock(LOW);
-  // clock is low
-  pinMode(data_pin, INPUT);  // release control
+  // RELEASE control
+  pinMode(data_pin, INPUT);  
   delayMicroseconds(clock_period);
 
-  // set hgigh
+  // set high
   SetClock(HIGH);
   delayMicroseconds(clock_period);
 
@@ -151,4 +158,8 @@ void SetBrightness(uint8_t val) {
 	Execute(brightness_code + val);
   Ack();
   Stop();
+}
+
+void ClockPeriod(int val) {
+  clock_period = val;
 }

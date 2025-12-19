@@ -4,7 +4,7 @@
 
 class Display {
   public:
-    Display();
+    Display(int clock, int data);
 
     // needs to be called frequently to keep the timer/stopwatch accurate
     void step();
@@ -35,7 +35,9 @@ class Display {
     // toggles between celcius and fahrenheit
     void toggleTemperatureScale();
 
-    void setTemperature(uint8_t val);
+    void writeTemperature(uint8_t val);
+
+    void setClockPeriod(int val);
 
     int getCnt() { return cnt; }
 

@@ -5,10 +5,10 @@
 #include "driver.h"
 #include "tm1637.h"
 
-Display::Display() 
+Display::Display(int clock, int data) 
   : active(0), temperatureScale(0) 
 {
-  Setup();
+  Setup(clock, data);
   ResetAddr();
 }
 
@@ -80,7 +80,7 @@ void Display::displayTime(unsigned int cnt) {
 
 void Display::setBrightness(uint8_t val) {
   // check for invalid input
-  if (val > 7) return; // TODO error handle
+  if (val > 7) val = 7; // invalid input, clamp
 
   SetBrightness(val);
 }
@@ -130,8 +130,8 @@ void Display::toggleTemperatureScale() {
   temperatureScale ^= 1; // flip the bit
 }
 
-void Display::setTemperature(uint8_t val) {
-  if (val > 99) return; // TODO ERROR HANDLING
+void Display::writeTemperature(uint8_t val) {
+  if (val > 99) val == 99; // Invalid input case, clamp
 
   // get temp symbol
   uint8_t scale_reg = 0xC; // celcius
@@ -146,6 +146,10 @@ void Display::setTemperature(uint8_t val) {
   to_write[3] = scale_reg;
 
   Write(to_write, 0); 
+}
+
+void Display::setClockPeriod(int val) {
+  ClockPeriod(val);
 }
 
 // turns display on/off
