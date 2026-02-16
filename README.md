@@ -37,7 +37,7 @@ display.pauseStopwatch(); // pauses timer OR stopwatch
 display.playStopwatch();
 ```
 
-```
+``` c
 // step() must be included in loop function
 void loop() {
   display.step();
